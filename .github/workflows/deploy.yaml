@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Trigger deployment on push to main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the repository
+      - uses: actions/checkout@v3
+
+      # 2. Set up Rust toolchain
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+
+      # 3. Install wasm-bindgen CLI
+      - name: Install wasm-bindgen
+        run: cargo install wasm-bindgen-cli
+
+      # 4. Build the WASM project
+      - name: Build WASM
+        run: |
+          cargo build --release --target wasm32-unknown-unknown
+          wasm-bindgen target/wasm32-unknown-unknown/release/gsl_validator.wasm --out-dir ./pkg --no-modules --no-typescript
+
+      # 5. Copy index.html to pkg directory
+      - name: Copy index.html
+        run: cp index.html pkg/
+
+      # 6. Deploy to GitHub Pages
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./pkg
+          publish_branch: gh-pages  # Default branch for GitHub Pages
