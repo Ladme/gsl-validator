@@ -86,61 +86,64 @@
         import init, { validate_gsl_query } from './pkg/gsl_validator.js';
 
         async function main() {
-            // initialize WebAssembly
-            await init();
+            try {
+                // Initialize WebAssembly with the correct path to the WASM file
+                await init('./pkg/gsl_validator_bg.wasm');
 
-            const queryInput = document.getElementById('query');
-            const validateButton = document.getElementById('validate');
-            const statusDiv = document.getElementById('status');
+                const queryInput = document.getElementById('query');
+                const validateButton = document.getElementById('validate');
+                const statusDiv = document.getElementById('status');
 
-            function validate() {
-                const query = queryInput.value.trim();
-                const result = validate_gsl_query(query);
+                function validate() {
+                    const query = queryInput.value.trim();
+                    const result = validate_gsl_query(query);
 
-                // clear previous status
-                statusDiv.innerHTML = '';
+                    // Clear previous status
+                    statusDiv.innerHTML = '';
 
-                // create a status message
-                const message = document.createElement('span');
-                const icon = document.createElement('span');
+                    // Create a status message
+                    const message = document.createElement('span');
+                    const icon = document.createElement('span');
 
-                if (result.startsWith('Valid query')) {
-                    message.textContent = 'Valid query';
-                    message.className = 'valid';
-                    icon.textContent = '✅';
-                    icon.className = 'valid';
-                } else {
-                    // split the results into two parts
-                    const [mainMessage, ...details] = result.split('. ');
+                    if (result.startsWith('Valid query')) {
+                        message.textContent = 'Valid query';
+                        message.className = 'valid';
+                        icon.textContent = '✅';
+                        icon.className = 'valid';
+                    } else {
+                        // Split the results into two parts
+                        const [mainMessage, ...details] = result.split('. ');
 
-                    message.innerHTML = `
-            <span>${mainMessage}</span>
-            <span style="font-size: 12px; color: #777;">${details.join('. ')}</span>
-        `;
-                    message.className = 'invalid';
-                    icon.textContent = '❌';
-                    icon.className = 'invalid-box';
+                        message.innerHTML = `
+                            <span>${mainMessage}</span>
+                            <span style="font-size: 12px; color: #777;">${details.join('. ')}</span>
+                        `;
+                        message.className = 'invalid';
+                        icon.textContent = '❌';
+                        icon.className = 'invalid-box';
+                    }
 
+                    statusDiv.appendChild(icon);
+                    statusDiv.appendChild(message);
                 }
 
-                statusDiv.appendChild(icon);
-                statusDiv.appendChild(message);
+                queryInput.addEventListener('input', () => {
+                    // Clear the status when typing starts
+                    statusDiv.innerHTML = '';
+                });
+
+                // Add event listeners for the button and Enter key
+                validateButton.addEventListener('click', validate);
+                queryInput.addEventListener('keypress', (event) => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        // Prevent new line
+                        event.preventDefault();
+                        validate();
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to initialize WebAssembly:', error);
             }
-
-            queryInput.addEventListener('input', () => {
-                // clear the status when typing starts
-                statusDiv.innerHTML = '';
-            });
-
-            // add event listeners for the button and Enter key
-            validateButton.addEventListener('click', validate);
-            queryInput.addEventListener('keypress', (event) => {
-                if (event.key === 'Enter' && !event.shiftKey) {
-                    // prevent new line
-                    event.preventDefault();
-                    validate();
-                }
-            });
         }
 
         main();
@@ -154,7 +157,7 @@
         &copy; <a href="https://github.com/Ladme" target="_blank" style="color: #007bff; text-decoration: none;">
             Ladislav Bartoš</a>, 2025
     </footer>
-
 </body>
+
 
 </html>
