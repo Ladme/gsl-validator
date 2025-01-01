@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groan Selection Language Query Validator</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            font-size: 16px;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4f4f4f;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #status {
+            margin-top: 10px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #status span {
+            font-size: 24px;
+        }
+
+        .valid {
+            color: green;
+        }
+
+        .invalid {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <h1>GSL Query Validator</h1>
+        <textarea id="query" placeholder="Enter your GSL query here..."></textarea>
+        <button id="validate">Validate Query</button>
+        <div id="status"></div>
+    </div>
+
+    <script type="module">
+        import init, { validate_gsl_query } from './pkg/gsl_validator.js';
+
+        async function main() {
+            // initialize WebAssembly
+            await init();
+
+            const queryInput = document.getElementById('query');
+            const validateButton = document.getElementById('validate');
+            const statusDiv = document.getElementById('status');
+
+            function validate() {
+                const query = queryInput.value.trim();
+                const result = validate_gsl_query(query);
+
+                // clear previous status
+                statusDiv.innerHTML = '';
+
+                // create a status message
+                const message = document.createElement('span');
+                const icon = document.createElement('span');
+
+                if (result.startsWith('Valid query')) {
+                    message.textContent = 'Valid query';
+                    message.className = 'valid';
+                    icon.textContent = '✅';
+                    icon.className = 'valid';
+                } else {
+                    // split the results into two parts
+                    const [mainMessage, ...details] = result.split('. ');
+
+                    message.innerHTML = `
+            <span>${mainMessage}</span>
+            <span style="font-size: 12px; color: #777;">${details.join('. ')}</span>
+        `;
+                    message.className = 'invalid';
+                    icon.textContent = '❌';
+                    icon.className = 'invalid-box';
+
+                }
+
+                statusDiv.appendChild(icon);
+                statusDiv.appendChild(message);
+            }
+
+            queryInput.addEventListener('input', () => {
+                // clear the status when typing starts
+                statusDiv.innerHTML = '';
+            });
+
+            // add event listeners for the button and Enter key
+            validateButton.addEventListener('click', validate);
+            queryInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    // prevent new line
+                    event.preventDefault();
+                    validate();
+                }
+            });
+        }
+
+        main();
+    </script>
+
+    <footer style="position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 12px; color: #555;">
+        Validation performed using <a href="https://github.com/Ladme/groan_rs" target="_blank"
+            style="color: #007bff; text-decoration: none;">groan_rs (v0.9)</a> compiled for WASM.
+        <a href="https://ladme.github.io/gsl-guide/" target="_blank" style="color: #007bff; text-decoration: none;">Read
+            more about GSL</a>.
+        &copy; <a href="https://github.com/Ladme" target="_blank" style="color: #007bff; text-decoration: none;">
+            Ladislav Bartoš</a>, 2025
+    </footer>
+
+</body>
+
+</html>
