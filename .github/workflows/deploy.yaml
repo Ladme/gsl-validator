@@ -40,14 +40,17 @@ jobs:
           cargo build --release --target wasm32-unknown-emscripten
           wasm-bindgen target/wasm32-unknown-emscripten/release/gsl_validator.wasm --out-dir ./pkg
 
-      # 6. Copy index.html to pkg directory
-      - name: Copy index.html
-        run: cp index.html pkg/
+      # 6. Create the gh-pages directory structure
+      - name: Create gh-pages structure
+        run: |
+          mkdir -p gh-pages/pkg
+          cp index.html gh-pages/
+          cp -r pkg/* gh-pages/pkg/
 
-      # 7. Deploy to GitHub Pages
-      - name: Deploy
+     # 7. Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./pkg
+          publish_dir: ./gh-pages
           publish_branch: gh-pages
