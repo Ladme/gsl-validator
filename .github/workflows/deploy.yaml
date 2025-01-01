@@ -44,6 +44,7 @@ jobs:
       - name: Create gh-pages structure
         run: |
           mkdir -p gh-pages/pkg
+          echo "/pkg/*.wasm\n  Content-Type: application/wasm" > gh-pages/_headers
           cp index.html gh-pages/
           cp -r pkg/* gh-pages/pkg/
 
